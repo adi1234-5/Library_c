@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Circulation | The Archivist</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: "Inter", sans-serif; background-color: #f9f9ff; color: #191c21; }
+    .material-symbols-outlined { font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <header class="bg-white/80 backdrop-blur-xl fixed w-full top-0 z-50 shadow-[0_12px_32px_rgba(25,28,33,0.06)]">
+    <div class="flex items-center w-full px-8 py-4 max-w-[1920px] mx-auto">
+      <div class="flex-1 flex justify-start">
+        <div class="text-2xl font-bold tracking-tighter text-blue-900">The Archivist</div>
+      </div>
+      <nav class="hidden md:flex flex-1 justify-center gap-8 items-center font-inter tracking-tight font-light">
+        <a class="text-slate-500 font-medium border-b-2 border-transparent hover:border-blue-700 hover:text-blue-700 transition-all duration-200 ease-in-out pb-1" href="{{ url_for('home') }}">Home</a>
+        <a class="text-slate-500 font-medium border-b-2 border-transparent hover:border-blue-700 hover:text-blue-700 transition-all duration-200 ease-in-out pb-1" href="{{ url_for('admin_inventory') }}">Inventory</a>
+        <a class="text-blue-900 font-medium border-b-2 border-blue-900 transition-all duration-200 ease-in-out pb-1" href="{{ url_for('admin_circulation') }}">Circulation</a>
+        <a class="text-slate-500 font-medium border-b-2 border-transparent hover:border-blue-700 hover:text-blue-700 transition-all duration-200 ease-in-out pb-1" href="{{ url_for('search_books') }}">Search</a>
+      </nav>
+      <div class="flex-1 flex justify-end items-center gap-4 whitespace-nowrap">
+        <span class="px-4 py-2 rounded-full bg-blue-50 text-blue-900 text-sm font-semibold">{{ current_user["username"] }}</span>
+        <form action="{{ url_for('logout') }}" method="post" class="m-0">
+          <button class="px-4 py-2 bg-[#003f87] text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-all duration-200 ease-in-out" type="submit">Logout</button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow w-full max-w-[1400px] mx-auto px-8 pt-28 pb-12 space-y-8">
+    {% include "_flash_messages.html" %}
+    <div>
+      <h1 class="text-4xl font-bold tracking-tight mb-2">Library Circulation</h1>
+      <p class="text-slate-600 font-medium">Issue and return books with due date and fine controls.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <aside class="lg:col-span-3 space-y-4">
+        <div class="bg-[#f2f3fc] p-6 rounded-xl">
+          <h3 class="text-xs uppercase tracking-widest font-bold text-blue-900 mb-4">Operations</h3>
+          <div class="space-y-2 text-sm">
+            <div class="px-4 py-3 bg-white text-blue-900 font-semibold rounded-lg">Issue Book</div>
+            <div class="px-4 py-3 text-slate-600 font-medium rounded-lg">Return Book</div>
+          </div>
+        </div>
+        <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+          <span class="text-[10px] uppercase tracking-tighter font-bold text-blue-900 block mb-1">Live Status</span>
+          <div class="text-2xl font-bold text-blue-900 tracking-tight">{{ active_issues|length }}</div>
+          <div class="text-xs text-blue-800">Active Issues</div>
+        </div>
+      </aside>
+
+      <section class="lg:col-span-9 space-y-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="bg-white rounded-xl p-8 shadow-[0_12px_32px_rgba(25,28,33,0.06)] border border-slate-200/60">
+            <div class="flex items-center gap-4 mb-8">
+              <div class="bg-blue-50 p-3 rounded-full">
+                <span class="material-symbols-outlined text-blue-900">outbound</span>
+              </div>
+              <div>
+                <h2 class="text-xl font-bold tracking-tight">Issue Book</h2>
+                <p class="text-sm text-slate-600">Authorize a new book loan</p>
+              </div>
+            </div>
+            <form class="space-y-5" action="{{ url_for('admin_issue_book') }}" method="post">
+              <div>
+                <label class="text-xs font-bold text-slate-600 uppercase tracking-wide block mb-1">Student Username</label>
+                <input class="w-full px-4 py-3 bg-[#e1e2ea] border-none rounded-md focus:ring-0 text-sm" list="student-list" name="username" placeholder="Enter student username" required type="text">
+                <datalist id="student-list">
+                  {% for student in students %}
+                    <option value="{{ student['username'] }}">{{ student['username'] }}</option>
+                  {% endfor %}
+                </datalist>
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-600 uppercase tracking-wide block mb-1">Book</label>
+                <select class="w-full px-4 py-3 bg-[#e1e2ea] border-none rounded-md focus:ring-0 text-sm" name="book_id" required>
+                  <option disabled selected value="">Select available book</option>
+                  {% for book in available_books %}
+                    <option value="{{ book['id'] }}">{{ book['title'] }} - {{ book['author'] }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-600 uppercase tracking-wide block mb-1">Loan Duration</label>
+                <select class="w-full px-4 py-3 bg-[#e1e2ea] border-none rounded-md focus:ring-0 text-sm" name="loan_days">
+                  <option value="7">7 Days</option>
+                  <option selected value="14">14 Days</option>
+                </select>
+              </div>
+              <button class="w-full py-4 bg-gradient-to-br from-[#003f87] to-[#0056b3] text-white font-bold rounded-xl shadow-lg" type="submit">
+                Authorize Issue
+              </button>
+            </form>
+          </div>
+
+          <div class="bg-[#f2f3fc] rounded-xl p-8 border border-slate-200/50">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="bg-emerald-50 p-3 rounded-full">
+                <span class="material-symbols-outlined text-emerald-700">inbox</span>
+              </div>
+              <div>
+                <h2 class="text-xl font-bold tracking-tight">Active Issues</h2>
+                <p class="text-sm text-slate-600">Confirm returns from active list</p>
+              </div>
+            </div>
+            <div class="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+              {% for issue in active_issues %}
+                <div class="bg-white rounded-lg p-4 border border-slate-200/60">
+                  <div class="text-sm font-bold">{{ issue["book_title"] }}</div>
+                  <div class="text-xs text-slate-600">Student: {{ issue["student_name"] }}</div>
+                  <div class="text-xs text-slate-600">Due: {{ issue["due_date"] }}</div>
+                  <form action="{{ url_for('admin_return_book', issue_id=issue['id']) }}" class="mt-3" method="post">
+                    <button class="w-full py-2 bg-emerald-600 text-white text-xs font-bold rounded-md" type="submit">Confirm Return</button>
+                  </form>
+                </div>
+              {% else %}
+                <p class="text-sm text-slate-500">No active issues right now.</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl overflow-hidden border border-slate-200/60">
+          <div class="p-6 border-b border-slate-200/60 bg-[#f2f3fc]">
+            <h3 class="font-bold tracking-tight">Transactions</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead class="bg-[#f2f3fc]/70">
+                <tr>
+                  <th class="px-6 py-4 text-[10px] font-bold text-slate-600 uppercase tracking-widest">Book</th>
+                  <th class="px-6 py-4 text-[10px] font-bold text-slate-600 uppercase tracking-widest">Student</th>
+                  <th class="px-6 py-4 text-[10px] font-bold text-slate-600 uppercase tracking-widest">Issue Date</th>
+                  <th class="px-6 py-4 text-[10px] font-bold text-slate-600 uppercase tracking-widest">Due Date</th>
+                  <th class="px-6 py-4 text-[10px] font-bold text-slate-600 uppercase tracking-widest">Return Date</th>
+                  <th class="px-6 py-4 text-[10px] font-bold text-slate-600 uppercase tracking-widest">Fine</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                {% for row in transactions %}
+                  <tr>
+                    <td class="px-6 py-4 text-sm font-semibold">{{ row["book_title"] }}</td>
+                    <td class="px-6 py-4 text-sm">{{ row["student_name"] }}</td>
+                    <td class="px-6 py-4 text-xs text-slate-600">{{ row["issue_date"] }}</td>
+                    <td class="px-6 py-4 text-xs text-slate-600">{{ row["due_date"] }}</td>
+                    <td class="px-6 py-4 text-xs text-slate-600">{{ row["return_date"] or "Pending" }}</td>
+                    <td class="px-6 py-4 text-xs font-semibold">Rs. {{ "%.2f"|format(row["fine"] or 0) }}</td>
+                  </tr>
+                {% else %}
+                  <tr>
+                    <td class="px-6 py-6 text-slate-500" colspan="6">No transactions yet.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

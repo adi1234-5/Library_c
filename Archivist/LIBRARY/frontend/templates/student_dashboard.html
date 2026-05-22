@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>The Archivist - Student Dashboard</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: "Inter", sans-serif; }
+    .material-symbols-outlined { font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24; vertical-align: middle; }
+  </style>
+</head>
+<body class="bg-[#f9f9ff] text-[#191c21]">
+  <aside class="h-screen w-64 fixed left-0 top-0 bg-[#f2f3fc] flex flex-col p-4 z-50">
+    <div class="mb-10 px-4">
+      <h1 class="text-lg font-black text-[#003f87]">Student Portal</h1>
+      <p class="text-xs text-slate-600 opacity-70">University Library</p>
+    </div>
+    <nav class="flex-grow space-y-2">
+      <a class="flex items-center gap-3 px-4 py-3 bg-white text-[#003f87] rounded-lg shadow-sm" href="{{ url_for('student_dashboard') }}">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span>Dashboard</span>
+      </a>
+      <a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-white/70 transition-all" href="{{ url_for('search_books') }}">
+        <span class="material-symbols-outlined">search</span>
+        <span>Search Books</span>
+      </a>
+      <a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-white/70 transition-all" href="{{ url_for('home') }}">
+        <span class="material-symbols-outlined">home</span>
+        <span>Home</span>
+      </a>
+    </nav>
+    <div class="mt-auto pt-6 border-t border-slate-200/70 space-y-3">
+      <form action="{{ url_for('logout') }}" method="post">
+        <button class="w-full bg-gradient-to-br from-[#003f87] to-[#0056b3] text-white py-3 rounded-full font-bold shadow-md" type="submit">
+          Logout
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="ml-64 flex flex-col min-h-screen">
+    <header class="bg-[#f9f9ff]/80 backdrop-blur-xl sticky top-0 z-40 flex justify-between items-center w-full px-8 py-4 shadow-sm">
+      <div class="text-xl font-bold tracking-tighter text-[#003f87]">The Archivist</div>
+      <div class="text-sm font-semibold text-slate-700">{{ current_user["username"] }}</div>
+    </header>
+
+    <main class="flex-grow p-10 max-w-7xl mx-auto w-full space-y-10">
+      {% include "_flash_messages.html" %}
+      <section class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="space-y-1">
+          <h2 class="text-4xl font-extrabold tracking-tight">Welcome back, {{ current_user["username"] }}</h2>
+          <p class="text-slate-600 font-medium">Track your current issues, due dates, and fines.</p>
+        </div>
+        <a class="bg-gradient-to-br from-[#003f87] to-[#0056b3] text-white px-6 py-2.5 rounded-full font-semibold shadow-lg text-sm" href="{{ url_for('search_books') }}">
+          Issue New Book
+        </a>
+      </section>
+
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200/50">
+          <span class="text-slate-600 font-medium text-xs tracking-widest uppercase">Books Borrowed</span>
+          <div class="text-3xl font-bold mt-2">{{ total_borrowed }}</div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200/50">
+          <span class="text-slate-600 font-medium text-xs tracking-widest uppercase">Due Soon (48h)</span>
+          <div class="text-3xl font-bold mt-2">{{ due_soon }}</div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200/50">
+          <span class="text-slate-600 font-medium text-xs tracking-widest uppercase">Overdue</span>
+          <div class="text-3xl font-bold mt-2 text-red-600">{{ overdue }}</div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200/50">
+          <span class="text-slate-600 font-medium text-xs tracking-widest uppercase">Total Fines</span>
+          <div class="text-3xl font-bold mt-2">Rs. {{ "%.2f"|format(total_fines) }}</div>
+        </div>
+      </section>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <section class="lg:col-span-8 space-y-6">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xl font-bold">Books Currently Borrowed</h3>
+          </div>
+          <div class="space-y-4">
+            {% for issue in active_issues %}
+              {% set due_date = issue["due_date"] %}
+              {% set is_overdue = due_date < today.isoformat() %}
+              <div class="flex items-center gap-6 p-5 bg-white rounded-xl shadow-sm">
+                <div class="w-14 h-20 rounded-lg bg-[#e1e2ea] flex-shrink-0 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-slate-500">book_2</span>
+                </div>
+                <div class="flex-grow space-y-1">
+                  <div class="flex justify-between items-start gap-4">
+                    <h4 class="font-bold text-lg leading-tight">{{ issue["title"] }}</h4>
+                    <span class="px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-tighter {% if is_overdue %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                      {% if is_overdue %}Overdue{% else %}Active{% endif %}
+                    </span>
+                  </div>
+                  <p class="text-slate-600 text-sm font-medium">{{ issue["author"] }}</p>
+                  <div class="pt-2 flex items-center gap-8">
+                    <div class="flex flex-col">
+                      <span class="text-[10px] uppercase tracking-wider text-slate-500">Issue Date</span>
+                      <span class="text-sm font-semibold">{{ issue["issue_date"] }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                      <span class="text-[10px] uppercase tracking-wider text-slate-500">Due Date</span>
+                      <span class="text-sm font-semibold {% if is_overdue %}text-red-600{% endif %}">{{ issue["due_date"] }}</span>
+                    </div>
+                  </div>
+                </div>
+                <form action="{{ url_for('student_return_book', issue_id=issue['id']) }}" method="post">
+                  <button class="bg-[#003f87] text-white px-5 py-2 rounded-full text-xs font-bold" type="submit">Return</button>
+                </form>
+              </div>
+            {% else %}
+              <div class="bg-white p-6 rounded-xl text-slate-500">You have no active issued books.</div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <aside class="lg:col-span-4 space-y-8">
+          <div class="space-y-3">
+            <h3 class="text-lg font-bold">Recent Activity</h3>
+            <div class="bg-[#f2f3fc] rounded-xl p-2">
+              <table class="w-full text-left">
+                <thead class="text-[10px] text-slate-600 uppercase tracking-widest border-b border-slate-200/70">
+                  <tr>
+                    <th class="p-3 font-semibold">Title</th>
+                    <th class="p-3 font-semibold text-right">Returned</th>
+                  </tr>
+                </thead>
+                <tbody class="text-sm">
+                  {% for item in history %}
+                    <tr class="hover:bg-white transition-colors">
+                      <td class="p-3">
+                        <p class="font-bold">{{ item["title"] }}</p>
+                        <p class="text-xs text-slate-600">Fine: Rs. {{ "%.2f"|format(item["fine"] or 0) }}</p>
+                      </td>
+                      <td class="p-3 text-right text-slate-600 font-medium">{{ item["return_date"] }}</td>
+                    </tr>
+                  {% else %}
+                    <tr>
+                      <td class="p-3 text-slate-500" colspan="2">No return history yet.</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="p-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-lg">
+            <p class="text-xs font-bold text-blue-700 uppercase tracking-tight">Reminder</p>
+            <p class="text-sm mt-1">Return books before due date to avoid fines.</p>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

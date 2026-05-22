@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Login | The Archivist</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: "Inter", sans-serif; }
+    .material-symbols-outlined { font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24; }
+    .archivist-gradient { background: linear-gradient(135deg, #003f87 0%, #0056b3 100%); }
+  
+    .input-error { border-color: #ba1a1a !important; background-color: #fffaf9 !important; }
+    .input-success { border-color: #059669 !important; }
+    .error-text { color: #ba1a1a; font-size: 0.75rem; margin-top: 0.25rem; display: block; font-weight: 500; }
+  </style>
+</head>
+<body class="bg-[#f9f9ff] text-[#191c21] min-h-screen flex flex-col">
+  <main class="flex-grow flex items-center justify-center p-6 md:p-12 relative overflow-hidden">
+    <div class="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
+      <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#0056b3] rounded-full blur-3xl"></div>
+      <div class="absolute bottom-1/4 -right-24 w-64 h-64 bg-[#ffdbcc] rounded-full blur-3xl"></div>
+    </div>
+    <div class="w-full max-w-[980px] z-10 grid md:grid-cols-2 gap-6">
+      <section class="bg-white rounded-xl shadow-[0_16px_48px_rgba(25,28,33,0.08)] hover:shadow-[0_20px_56px_rgba(25,28,33,0.12)] transition-shadow duration-500 overflow-hidden">
+        <div class="p-8 pb-0 space-y-4">
+          <div class="flex items-center space-x-2">
+            <div class="w-10 h-10 archivist-gradient rounded-lg flex items-center justify-center">
+              <span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1;">auto_stories</span>
+            </div>
+            <span class="text-2xl font-bold tracking-tighter text-blue-900">The Archivist</span>
+          </div>
+          <div>
+            <h1 class="text-4xl font-black tracking-tight text-blue-900">Login</h1>
+            <p class="text-slate-600">Use your account to continue.</p>
+          </div>
+        </div>
+        <form class="p-8 space-y-5" action="{{ url_for('login') }}" method="post">
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold tracking-wide text-slate-600 uppercase">Username</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                <span class="material-symbols-outlined text-lg">badge</span>
+              </div>
+              <input class="w-full pl-12 pr-4 py-4 bg-[#e1e2ea] border-2 border-transparent rounded-md focus:ring-0 focus:border-[#003f87] focus:bg-white transition-all duration-300 placeholder:text-slate-500/60" name="username" placeholder="Enter username" required type="text">
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <label class="block text-sm font-semibold tracking-wide text-slate-600 uppercase">Password</label>
+              <a href="#" class="text-xs font-bold text-[#003f87] hover:underline decoration-2 underline-offset-2 transition-all">Forgot Password?</a>
+            </div>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                <span class="material-symbols-outlined text-lg">lock</span>
+              </div>
+              <input class="w-full pl-12 pr-12 py-4 bg-[#e1e2ea] border-2 border-transparent rounded-md focus:ring-0 focus:border-[#003f87] focus:bg-white transition-all duration-300 placeholder:text-slate-500/60" name="password" placeholder="••••••••" required type="password" id="login-password">
+              <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-[#003f87] transition-colors" onclick="togglePassword('login-password')">
+                <span class="material-symbols-outlined text-lg">visibility</span>
+              </button>
+            </div>
+          </div>
+          <button class="w-full py-4 archivist-gradient text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,86,179,0.3)] active:scale-95 hover:-translate-y-0.5" type="submit">
+            Login
+          </button>
+        </form>
+      </section>
+
+      <section class="bg-[#f2f3fc] rounded-xl shadow-[0_16px_48px_rgba(25,28,33,0.06)] hover:shadow-[0_20px_56px_rgba(25,28,33,0.10)] transition-shadow duration-500 overflow-hidden">
+        <div class="p-8 pb-2">
+          <h2 class="text-3xl font-black tracking-tight text-blue-900">Sign Up</h2>
+          <p class="text-slate-600">Create a new account (Admin or Student).</p>
+        </div>
+        <form class="p-8 space-y-4" action="{{ url_for('signup') }}" method="post">
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold tracking-wide text-slate-600 uppercase">Username</label>
+            <input class="w-full px-4 py-3 bg-white border-2 border-transparent rounded-md focus:ring-0 focus:border-[#003f87] transition-all duration-300 placeholder:text-slate-500/60" name="username" required type="text" placeholder="Enter a unique username">
+            <span class="text-[11px] text-slate-400 mt-1 block">Username must be at least 4 characters.</span>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold tracking-wide text-slate-600 uppercase">Password</label>
+            <div class="relative">
+              <input class="w-full px-4 pr-12 py-3 bg-white border-2 border-transparent rounded-md focus:ring-0 focus:border-[#003f87] transition-all duration-300 placeholder:text-slate-500/60" name="password" required type="password" id="signup-password" placeholder="Choose a password">
+              <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-[#003f87] transition-colors" onclick="togglePassword('signup-password')">
+                <span class="material-symbols-outlined text-lg">visibility</span>
+              </button>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold tracking-wide text-slate-600 uppercase">Select Role (Student/Admin)</label>
+            <select class="w-full px-4 py-3 bg-white border-2 border-transparent rounded-md focus:ring-0 focus:border-[#003f87] transition-all duration-300 placeholder:text-slate-500/60" name="role">
+              <option value="student">Student</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <button class="w-full py-3 bg-white text-[#003f87] border border-[#003f87]/20 font-bold rounded-full hover:bg-[#003f87] hover:text-white transition-all duration-300 hover:shadow-lg active:scale-95 hover:-translate-y-0.5" type="submit">
+            Sign Up
+          </button>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <div class="max-w-[980px] mx-auto w-full px-6">
+    {% include "_flash_messages.html" %}
+  </div>
+  <footer class="bg-slate-100 w-full py-8 flex justify-center">
+    <div class="text-blue-900 text-sm uppercase tracking-widest">© 2026 The Archivist. Digital Library System.</div>
+  </footer>
+<script>
+    function togglePassword(inputId) {
+      const input = document.getElementById(inputId);
+      const icon = input.nextElementSibling.querySelector('span');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.textContent = 'visibility_off';
+      } else {
+        input.type = 'password';
+        icon.textContent = 'visibility';
+      }
+    }
+  </script>
+</body>
+</html>
